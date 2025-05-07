@@ -1,5 +1,5 @@
 # sustAInly
-![](https://github.com/Shadow-Rhodium/PyKFC/blob/main/PyKFC.png?raw=true)
+![](https://github.com/Shadow-Rhodium/sustAInly/blob/main/sustainly.jpg)
 
 
 
