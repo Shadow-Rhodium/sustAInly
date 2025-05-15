@@ -20,7 +20,7 @@ model = Sustainia.GenerativeModel(
 
 chat_session = model.start_chat(history=[])
 
-Sustainia.configure(api_key="NO")
+Sustainia.configure(api_key="...")
 
 
 
@@ -427,9 +427,6 @@ def show_home_screen():
                 fg="#666").pack(anchor="w")
 
 
-
-
-
 def sustaina():
     clear_window()
     
@@ -452,21 +449,51 @@ def sustaina():
     
     response = chat_session.send_message("Greet the user, introduce yourself, and give them the reccomendations")
 
-    AIframe = tk.Frame(root, width="20", height="100").pack()
-    lbl = tk.Label(AIframe, 
-                text=response.text, 
-                font=FONT_MAIN, 
-                bg=ACCENT_GOLD, 
-                fg="#0d3b3b", wraplength= 450)
-    lbl.pack(fill="both",expand=True, anchor= "n")
-    
-    main_frame = ttk.Frame( root, padding="20")
+    main_frame = ttk.Frame(root, padding="20")
     main_frame.pack(fill=tk.BOTH, expand=True)
-    # Input fields
+    
+    # Scrollable Response Frame
+    response_frame = ttk.Frame(main_frame)
+    response_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
+    
+    # Create Canvas and Scrollbar
+    canvas = tk.Canvas(response_frame, bg=ACCENT_GOLD, highlightthickness=0)
+    scrollbar = ttk.Scrollbar(response_frame, orient="vertical", command=canvas.yview)
+    
+    # Scrollable Frame inside Canvas
+    scrollable_frame = ttk.Frame(canvas)
+    scrollable_frame.bind(
+        "<Configure>",
+        lambda e: canvas.configure(
+            scrollregion=canvas.bbox("all")
+        )
+    )
+    
+    canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+    canvas.configure(yscrollcommand=scrollbar.set)
+    
+    # Pack Canvas and Scrollbar
+    canvas.pack(side="left", fill="both", expand=True)
+    scrollbar.pack(side="right", fill="y")
+    
+    # Response Label inside scrollable frame
+    response_label = tk.Label(
+        scrollable_frame,
+        text=response.text,
+        font=FONT_MAIN,
+        bg=ACCENT_GOLD,
+        fg=DARK_GREEN,
+        wraplength=450,
+        justify="left",
+        padx=10,
+        pady=10
+    )
+    response_label.pack(fill="both", expand=True)
+    
+    # Input Frame (unchanged from your code)
     input_frame = ttk.Frame(main_frame)
     input_frame.pack(fill=tk.X, pady=5)
-        
-        # User
+    
     user_frame = ttk.Frame(input_frame)
     user_frame.pack(fill=tk.X, pady=5)
     ttk.Label(user_frame, text="User Chat:").pack(side=tk.TOP)
@@ -475,13 +502,18 @@ def sustaina():
 
     def respond():
         resp = user_entry.get()
-        reply = chat_session.send_message(resp)
-        lbl.config(text = reply.text)
-
-    user_button = ttk.Button(user_frame, text = "Send", command=respond,
-                    style='TButton')
+        reply = chat_session.send_message(resp)  # Your chat function
+        response_label.config(text=reply.text)
+        # Auto-scroll to bottom after update
+        canvas.yview_moveto(1.0)
+    
+    user_button = ttk.Button(
+        user_frame, 
+        text="Send", 
+        command=respond,
+        style='TButton'
+    )
     user_button.pack(fill="x", pady=8, ipady=8, side=tk.RIGHT)
-
 
     # Navigation buttons
     nav_frame = tk.Frame(root, bg=DARK_GREEN, height=60)
@@ -547,6 +579,29 @@ def hub():
                     command=command,
                     style='Green.TButton')
         btn.pack(fill="x", pady=8, ipady=8)
+
+
+# User interests display
+    interest_frame = tk.Frame(root, bg=WHITE, padx=10, pady=10)
+    interest_frame.pack(fill="x", padx=20, pady=10)
+    
+    tk.Label(interest_frame, 
+            text="Your Interests:", 
+            font=FONT_BOLD, 
+            bg=WHITE).pack(anchor="w")
+    
+    if selected_interests:
+        interests_text = ", ".join(selected_interests)
+        tk.Label(interest_frame, 
+                text=interests_text, 
+                font=FONT_MAIN, 
+                bg=WHITE).pack(anchor="w")
+    else:
+        tk.Label(interest_frame, 
+                text="No interests selected", 
+                font=FONT_MAIN, 
+                bg=WHITE, 
+                fg="#666").pack(anchor="w")
 
 
 # Navigation buttons
