@@ -1,8 +1,26 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-from PIL import Image, ImageTk
-import webbrowser
+import webbrowser as internet
 from datetime import datetime
+import google.generativeai as Sustainia
+import random as dice 
+
+generation_config = {
+    "temperature": 1,
+    "top_p": 0.95,
+    "top_k": 64,
+    "max_output_tokens": 512,
+    "response_mime_type": "text/plain",
+    }
+
+model = Sustainia.GenerativeModel(
+    model_name="gemini-1.5-flash",
+    generation_config=generation_config,
+    )
+
+chat_session = model.start_chat(history=[])
+
+Sustainia.configure(api_key="NO")
 
 
 
@@ -403,7 +421,7 @@ def show_home_screen():
                 bg=WHITE).pack(anchor="w")
     else:
         tk.Label(interest_frame, 
-                text="No interests selected (Guest mode)", 
+                text="No interests selected", 
                 font=FONT_MAIN, 
                 bg=WHITE, 
                 fg="#666").pack(anchor="w")
@@ -427,8 +445,44 @@ def sustaina():
                      pady=10).pack(pady=20)
     
     # Main content
-  
+    if selected_interests:
+        chat_session.send_message(f"You are an AI named sustainia, your purpose is to give sustainable reccomendations to the user. The user is intrested in {selected_interests}. Do not exceed 200 words.")
+    else:
+        chat_session.send_message(f"You are an AI named sustainia, your purpose is to give sustainable reccomendations to the user. Do not exceed 200 words")
     
+    response = chat_session.send_message("Greet the user, introduce yourself, and give them the reccomendations")
+
+    AIframe = tk.Frame(root, width="20", height="100").pack()
+    lbl = tk.Label(AIframe, 
+                text=response.text, 
+                font=FONT_MAIN, 
+                bg=ACCENT_GOLD, 
+                fg="#0d3b3b", wraplength= 450)
+    lbl.pack(fill="both",expand=True, anchor= "n")
+    
+    main_frame = ttk.Frame( root, padding="20")
+    main_frame.pack(fill=tk.BOTH, expand=True)
+    # Input fields
+    input_frame = ttk.Frame(main_frame)
+    input_frame.pack(fill=tk.X, pady=5)
+        
+        # User
+    user_frame = ttk.Frame(input_frame)
+    user_frame.pack(fill=tk.X, pady=5)
+    ttk.Label(user_frame, text="User Chat:").pack(side=tk.TOP)
+    user_entry = ttk.Entry(user_frame, justify="center", width=100)
+    user_entry.pack(side=tk.BOTTOM, padx=10)
+
+    def respond():
+        resp = user_entry.get()
+        reply = chat_session.send_message(resp)
+        lbl.config(text = reply.text)
+
+    user_button = ttk.Button(user_frame, text = "Send", command=respond,
+                    style='TButton')
+    user_button.pack(fill="x", pady=8, ipady=8, side=tk.RIGHT)
+
+
     # Navigation buttons
     nav_frame = tk.Frame(root, bg=DARK_GREEN, height=60)
     nav_frame.pack(fill="x", side="bottom")
@@ -445,6 +499,70 @@ def sustaina():
         btn.bind("<Button-1>", lambda e, t=tab: show_tab(t))
 
 
+def hub():
+    clear_window()
+    
+   
+    # Header
+    header = tk.Frame(root, bg=DARK_GREEN, height=80)
+    header.pack(fill="x")
+    tk.Label(header, text="♻️ Sustainly", 
+                     font=("Helvetica", 20, "bold"), 
+                     fg=WHITE, 
+                     bg=DARK_GREEN,
+                     padx=10,
+                     pady=10).pack(pady=20)
+    
+    def shop():
+        if selected_interests:
+            product = dice.choice(selected_interests)
+            internet.open(f"https://www.amazon.ae/s?k=sustainable+{product}&crid=DUHH0CEQOPJY&sprefix=sustainable+products%2Caps%2C175&ref=nb_sb_noss_1")
+
+        else:
+            internet.open("https://www.amazon.ae/s?k=sustainable+products&crid=DUHH0CEQOPJY&sprefix=sustainable+products%2Caps%2C175&ref=nb_sb_noss_1")
+  
+    def news():
+        sources = ["apnews.com","edition.cnn.com","www.bbc.com", "www.nbcnews.com", "www.aljazeera.com"]
+        source = dice.choice(sources)
+        internet.open(f"https://{source}/search?q=sustainable")
+
+    def events():
+        webs = ["geventm.com", "www.dmgevents.com"]
+        web = dice.choice(webs)
+        internet.open(f"https://{web}/search?q=sustainable")
+
+    features = [
+        ("Community Events", "🌐",events),
+        ("News", "📡",news),
+        ("Shop", "🎁", shop)
+    ]
+
+    content_frame = tk.Frame(root, bg=LIGHT_GREEN)
+    content_frame.pack(padx=20, pady=10, fill="both", expand=True)
+
+
+    for text, icon, command in features:
+        btn = ttk.Button(content_frame, 
+                    text=f"{icon}  {text}", 
+                    command=command,
+                    style='Green.TButton')
+        btn.pack(fill="x", pady=8, ipady=8)
+
+
+# Navigation buttons
+    nav_frame = tk.Frame(root, bg=DARK_GREEN, height=60)
+    nav_frame.pack(fill="x", side="bottom")
+        
+    for tab in ["Home", "Interests", "Ask Sustainia", "Community"]:
+        btn = tk.Label(nav_frame, 
+                      text=tab, 
+                      font=FONT_MAIN, 
+                      bg=DARK_GREEN, 
+                      fg=WHITE,
+                      padx=20,
+                      cursor="hand2")
+        btn.pack(side="left")
+        btn.bind("<Button-1>", lambda e, t=tab: show_tab(t))
 # ======================
 #  HELPER FUNCTIONS
 # ======================
@@ -460,19 +578,22 @@ def back_button():
 def show_tab(tab_name):
     if tab_name == "Home":
         show_home_screen()
+
     elif tab_name == "Interests":
         show_interest_selection()
 
     elif tab_name == "Ask Sustainia":
         sustaina()
 
+    elif tab_name == "Community":
+        hub()
 # ======================
 #  MAIN APP SETUP
 # ======================
 root = tk.Tk()
 root.title("Sustainly App")
 root.geometry("500x700")
-root.resizable(False, False)
+root.resizable(True, True)
 root.configure(bg=LIGHT_GREEN)
 
 # Custom styling
