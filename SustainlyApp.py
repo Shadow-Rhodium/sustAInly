@@ -37,7 +37,7 @@ model = Sustainia.GenerativeModel(
 
 chat_session = model.start_chat(history=[])
 
-Sustainia.configure(api_key="AIzaSyCsE0Xjdj9nmcUfHWmhc50-Z1brgmG41i4")
+Sustainia.configure(api_key="REDACTED")
 
 
 
